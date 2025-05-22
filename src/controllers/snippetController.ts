@@ -46,3 +46,18 @@ export const deleteById = (req:any,res:any)=>{
     res.json({message:"Snippets deleted successfully"});
 };
 
+export const updateById=(req:any,res:any)=>{
+    const id=parseInt(req.params.id);
+    const {title,code}=req.body;
+
+    const snippet = snippets.find((s) => s.id === id);
+
+    if (!snippet) {
+        return res.status(404).json({ error: "Snippet not found" });
+    }
+    if(title) snippet.title = title;
+    if(code) snippet.code=code;
+
+    res.json({message:"Snippet updated",snippet});
+}
+
