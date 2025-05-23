@@ -1,5 +1,4 @@
-import { Router, Request, Response } from "express";
-import {snippets,Snippet} from "../data/snippets"
+import express,{ Router, Request, Response } from "express";
 import {getAllSnippets,addSnippet,getById,deleteById,updateById} from "../controllers/snippetController"
 
 const router=Router();
