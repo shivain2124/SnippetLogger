@@ -1,7 +1,9 @@
 import express, {Request,Response} from "express";
-import snippetRouter from "./routes/snippets"
+import mongoose from 'mongoose';
+import snippetRouter from "./routes/snippets";
 
 const app = express();
+
 app.use(express.json());
 app.use("/api/snippets",snippetRouter);
 
@@ -9,8 +11,17 @@ app.use("/api/snippets",snippetRouter);
 app.get("/",(req:Request,res:Response)=>{
     res.send("I am gonna rule the world")
 });
+const MONGO_URI = "mongodb://127.0.0.1:27017/snippetlogger";
 
-const PORT:number = parseInt(process.env.PORT || '3000',10);
-app.listen(PORT,()=>{
-    console.log(`My SnippetLogger - listening on port ${PORT}!`);
-});
+mongoose.connect(MONGO_URI).then(()=>{
+    console.log("Connected to MongoDB locally");
+
+    const PORT = 3000;
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+})
+.catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+  });
+
