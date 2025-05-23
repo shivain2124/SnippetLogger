@@ -1,11 +1,15 @@
 import express, {Request,Response} from "express";
 import mongoose from 'mongoose';
 import snippetRouter from "./routes/snippets";
+import {logger} from "./middleware/logger";
+import {errorHandler} from "./middleware/errorHandler";
 
 const app = express();
 
 app.use(express.json());
+app.use(logger); //logger middleware
 app.use("/api/snippets",snippetRouter);
+app.use(errorHandler);
 
 
 app.get("/",(req:Request,res:Response)=>{
