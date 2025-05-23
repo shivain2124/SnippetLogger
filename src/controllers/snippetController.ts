@@ -1,63 +1,89 @@
 import {Request,Response} from "express";
-import { snippets, Snippet } from "../data/snippets";
+import CodeSnippet from "../models/CodeSnippet";
 
-export const getAllSnippets = (req:Request,res:Response)=>{
-    res.json(snippets);
-};
-
-export const addSnippet = (req:any,res:any)=>{
-    const {title,code} = req.body 
-
-    if(!title || !code){
-        return res.status(400).json({error: "Title and code are required"});
+//fetch all snippet
+export const getAllSnippets = async (req:Request,res:Response)=>{
+    try{
+        const snippets = await CodeSnippet.find();
+        res.json(snippets);
+    } catch(error){
+        res.status(500).json({ error: "Failed to fetch snippets", details: error });
     }
-
-    const newSnippet:Snippet = {
-        id:snippets.length+1,
-        title,
-        code,
-        createdAt:new Date(),
-    };
-    
-    snippets.push(newSnippet);
-    res.status(201).json(newSnippet);
 };
 
-
-export const getById = (req :any, res:any)=>{
-        const id = parseInt(req.params.id);
-        const snippet = snippets.find((s)=>s.id===id);
-
+// fetch specific id snippet
+export const getById = async (req :any, res:any)=>{
+    try{
+        const snippet = await CodeSnippet.findById(req.params.id);
+        
         if(!snippet){
             return res.status(404).json({error:"Snippet not found"});
         }
         res.json(snippet);
+
+    } catch(error){
+        res.status(500).json({ error: "Failed to fetch snippet", details: error });
+    }
+
     };
 
-export const deleteById = (req:any,res:any)=>{
-    const id = parseInt(req.params.id);
-    const index= snippets.findIndex((s)=> s.id===id);
+    //create snippet
+export const addSnippet = async (req:any,res:any)=>{
+    try{
+        const {title,code,language} = req.body 
 
-    if(index===-1){
-        return res.status(404).json({error:"Snippet not found"}); 
+        if(!title || !code || !language){
+            return res.status(400).json({error: "Title, code and language are required"});
+        }
+
+        const newSnippet = new CodeSnippet({
+            title,
+            code,
+            language,
+        });
+        
+        const savedSnippet = await newSnippet.save();
+        
+        res.status(201).json(newSnippet);
+    } catch(error){
+        res.status(500).json({error: "Failed to create snippet", details: error });
     }
-
-    snippets.splice(index,1);
-    res.json({message:"Snippets deleted successfully"});
 };
 
-export const updateById=(req:any,res:any)=>{
-    const id=parseInt(req.params.id);
-    const {title,code}=req.body;
 
-    const snippet = snippets.find((s) => s.id === id);
 
-    if (!snippet) {
-        return res.status(404).json({ error: "Snippet not found" });
+// delete snippet by id
+export const deleteById =  async (req:any,res:any)=>{
+    try{
+        const deletedSnippet = await CodeSnippet.findByIdAndDelete(req.params.id);
+
+        if(!deletedSnippet){
+            return res.status(404).json({error:"Snippet not found"}); 
+        }
+        res.json({message: "Snippet deleted successfully"})
+
+    } catch(error){
+        res.status(500).json({ error: "Failed to delete snippet", details: error });
     }
-    if(title) snippet.title = title;
-    if(code) snippet.code=code;
+};
 
-    res.json({message:"Snippet updated",snippet});
-}
+// update snippet by ID
+export const updateById= async (req:any,res:any)=>{
+    try{
+        const {title,code,language}=req.body;
+        
+        const updatedSnippet = await CodeSnippet.findByIdAndUpdate(
+            req.params.id,
+            { title, code, language },
+            { new: true, runValidators: true }
+          );
+
+          if (!updatedSnippet) {
+            return res.status(404).json({ error: "Snippet not found" });
+        }
+        res.json({message:"Snippet updated",snippet:updatedSnippet});
+    } catch(error){
+        res.status(500).json({ error: "Failed to update snippet", details: error });
+    }
+};
 
