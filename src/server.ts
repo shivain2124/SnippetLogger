@@ -3,12 +3,14 @@ import mongoose from 'mongoose';
 import snippetRouter from "./routes/snippets";
 import {logger} from "./middleware/logger";
 import {errorHandler} from "./middleware/errorHandler";
+import authRoutes from "./routes/auth"
 
 const app = express();
 
 app.use(express.json());
 app.use(logger); //logger middleware
 app.use("/api/snippets",snippetRouter);
+app.use("/api/auth",authRoutes);
 app.use(errorHandler);
 
 
