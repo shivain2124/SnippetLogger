@@ -7,32 +7,33 @@ const userSchema = new mongoose.Schema({
       required: true,
       unique: true,
     },
-    password:{
-        type:String,
-        required:true,
+    password: {
+        type: String,
+        required: true,
     },
     refreshToken: {
-      type: String, // Stores the refresh token for logout/rotation
+      type: String,
     },
   },
-  { timestamps: true } // Adds createdAt and updatedAt
+  { 
+    timestamps: true,
+    methods: {
+      // Define methods here for automatic TypeScript inference
+      async comparePassword(enteredPassword: string): Promise<boolean> {
+        return bcrypt.compare(enteredPassword, this.password);
+      }
+    }
+  }
 );
 
-userSchema.pre("save",async function(next){
-    if(!this.isModified("password")){
+userSchema.pre("save", async function(next) {
+    if (!this.isModified("password")) {
         return next();
     }
-
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password,salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
-// Add a method to compare password during login
-userSchema.methods.comparePassword = function (enteredPassword: string) {
-  return bcrypt.compare(enteredPassword, this.password);
-};
-
 const User = mongoose.model("User", userSchema);
-
 export default User;
