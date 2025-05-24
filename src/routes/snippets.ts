@@ -1,5 +1,6 @@
 import express,{ Router, Request, Response } from "express";
 import {getAllSnippets,addSnippet,getById,deleteById,updateById} from "../controllers/snippetController"
+import {validateSnippet} from "../middleware/validation";
 
 const router=Router();
 
@@ -9,9 +10,9 @@ type SnippetInput={
 };
 
 router.get('/',getAllSnippets);
-router.post('/',addSnippet);
+router.post('/',validateSnippet,addSnippet);
 router.get('/:id',getById);
 router.delete('/:id',deleteById);
-router.put('/:id',updateById);
+router.put('/:id',validateSnippet,updateById);
 
 export default router;
