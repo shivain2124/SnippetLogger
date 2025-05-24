@@ -1,10 +1,12 @@
 import {Request,Response} from "express";
-import CodeSnippet from "../models/CodeSnippet";
+import CodeSnippet from "../models/codeSnippet";
+import { AuthenticatedRequest } from "../middleware/authMiddleware";
+
 
 //fetch all snippet
-export const getAllSnippets = async (req:Request,res:Response)=>{
+export const getAllSnippets = async (req:AuthenticatedRequest,res:Response)=>{
     try{
-        const snippets = await CodeSnippet.find();
+        const snippets = await CodeSnippet.find({ user: req.userId });
         res.json(snippets);
     } catch(error){
         res.status(500).json({ error: "Failed to fetch snippets", details: error });
@@ -12,9 +14,9 @@ export const getAllSnippets = async (req:Request,res:Response)=>{
 };
 
 // fetch specific id snippet
-export const getById = async (req :any, res:any)=>{
+export const getById = async (req :AuthenticatedRequest, res:any)=>{
     try{
-        const snippet = await CodeSnippet.findById(req.params.id);
+        const snippet = await CodeSnippet.findById({ _id: req.params.id, user: req.userId });
         
         if(!snippet){
             return res.status(404).json({error:"Snippet not found"});
@@ -40,6 +42,7 @@ export const addSnippet = async (req:any,res:any)=>{
             title,
             code,
             language,
+            user: req.userId,
         });
         
         const savedSnippet = await newSnippet.save();
@@ -53,12 +56,13 @@ export const addSnippet = async (req:any,res:any)=>{
 
 
 // delete snippet by id
-export const deleteById =  async (req:any,res:any)=>{
+export const deleteById =  async (req:AuthenticatedRequest,res:any)=>{
     try{
-        const deletedSnippet = await CodeSnippet.findByIdAndDelete(req.params.id);
+        const deletedSnippet = await CodeSnippet.findByIdAndDelete({_id: req.params.id,
+      user: req.userId,});
 
         if(!deletedSnippet){
-            return res.status(404).json({error:"Snippet not found"}); 
+            return res.status(404).json({error:"Snippet not found or unauthorized"}); 
         }
         res.json({message: "Snippet deleted successfully"})
 
@@ -68,18 +72,18 @@ export const deleteById =  async (req:any,res:any)=>{
 };
 
 // update snippet by ID
-export const updateById= async (req:any,res:any)=>{
+export const updateById= async (req:AuthenticatedRequest,res:any)=>{
     try{
         const {title,code,language}=req.body;
         
         const updatedSnippet = await CodeSnippet.findByIdAndUpdate(
-            req.params.id,
+           { _id: req.params.id, user: req.userId },
             { title, code, language },
             { new: true, runValidators: true }
           );
 
           if (!updatedSnippet) {
-            return res.status(404).json({ error: "Snippet not found" });
+            return res.status(404).json({ error: "Snippet not found or unauthorized" });
         }
         res.json({message:"Snippet updated",snippet:updatedSnippet});
     } catch(error){
