@@ -57,38 +57,56 @@ export const addSnippet = async (req:any,res:any)=>{
 
 
 // delete snippet by id
-export const deleteById =  async (req:AuthenticatedRequest,res:any)=>{
-    try{
-        const deletedSnippet = await CodeSnippet.findByIdAndDelete({_id: req.params.id,
-  createdBy: req.userId,});
+export const deleteById = async (req: AuthenticatedRequest, res: any) => {
+  try {
+    const snippet = await CodeSnippet.findById(req.params.id);
 
-        if(!deletedSnippet){
-            return res.status(404).json({error:"Snippet not found or unauthorized"}); 
-        }
-        res.json({message: "Snippet deleted successfully"})
-
-    } catch(error){
-        res.status(500).json({ error: "Failed to delete snippet", details: error });
+    // Not found
+    if (!snippet) {
+      return res.status(404).json({ error: "Snippet not found" });
     }
+
+    // Unauthorized
+    if (snippet.createdBy.toString() !== req.userId) {
+      return res.status(403).json({ error: "Unauthorized to delete this snippet" });
+    }
+
+    await snippet.deleteOne();
+    res.json({ message: "Snippet deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete snippet", details: error });
+  }
 };
+
 
 // update snippet by ID
-export const updateById= async (req:AuthenticatedRequest,res:any)=>{
-    try{
-        const {title,code,language}=req.body;
-        
-        const updatedSnippet = await CodeSnippet.findByIdAndUpdate(
-           { _id: req.params.id,  createdBy: req.userId },
-            { title, code, language },
-            { new: true, runValidators: true }
-          );
+// update snippet by ID
+export const updateById = async (req: AuthenticatedRequest, res: any) => {
+  try {
+    const { title, code, language } = req.body;
 
-          if (!updatedSnippet) {
-            return res.status(404).json({ error: "Snippet not found or unauthorized" });
-        }
-        res.json({message:"Snippet updated",snippet:updatedSnippet});
-    } catch(error){
-        res.status(500).json({ error: "Failed to update snippet", details: error });
+    // Step 1: Fetch the snippet first
+    const snippet = await CodeSnippet.findById(req.params.id);
+
+    // Step 2: Check if it exists
+    if (!snippet) {
+      return res.status(404).json({ error: "Snippet not found" });
     }
-};
 
+    // Step 3: Check if the user owns it
+    if (snippet.createdBy.toString() !== req.userId) {
+      return res.status(403).json({ error: "Unauthorized to update this snippet" });
+    }
+
+    // Step 4: Update the snippet
+    if (title) snippet.title = title;
+    if (code) snippet.code = code;
+    if (language) snippet.language = language;
+
+    await snippet.save();
+
+    res.json({ message: "Snippet updated", snippet });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update snippet", details: error });
+  }
+};
