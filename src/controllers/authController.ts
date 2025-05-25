@@ -7,6 +7,12 @@ export const register = async (req:any,res:any,next:NextFunction)=>{
     try{
         const {email,password} = req.body;
 
+        if (!email || !password) {
+              return res.status(400).json({
+                message: "Email and password are required",
+              });
+            }
+
         const userExists = await User.findOne({email});
         if(userExists){
             return res.status(400).json({ message: "Email already registered" });
@@ -34,6 +40,12 @@ export const register = async (req:any,res:any,next:NextFunction)=>{
 export const login = async (req: any, res: any, next: NextFunction) => {
     try{
         const { email, password } = req.body;
+
+          if (!email || !password) {
+            return res.status(400).json({
+            message: "Email and password are required",
+          });
+        }
 
          // Find user by email
         const user = await User.findOne({ email });
@@ -71,7 +83,7 @@ export const refreshToken = async (req: any, res: any, next: NextFunction) => {
 
     // Check if refresh token is provided
     if (!refreshToken) {
-      return res.status(401).json({ message: "Refresh token required" });
+      return res.status(400).json({ message: "Refresh token required" });
     }
 
     // Find user with this refresh token
