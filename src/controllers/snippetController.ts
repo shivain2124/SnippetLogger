@@ -6,7 +6,7 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware";
 //fetch all snippet
 export const getAllSnippets = async (req:AuthenticatedRequest,res:Response)=>{
     try{
-        const snippets = await CodeSnippet.find({ user: req.userId });
+        const snippets = await CodeSnippet.find({  createdBy: req.userId });
         res.json(snippets);
     } catch(error){
         res.status(500).json({ error: "Failed to fetch snippets", details: error });
@@ -16,7 +16,7 @@ export const getAllSnippets = async (req:AuthenticatedRequest,res:Response)=>{
 // fetch specific id snippet
 export const getById = async (req :AuthenticatedRequest, res:any)=>{
     try{
-        const snippet = await CodeSnippet.findById({ _id: req.params.id, user: req.userId });
+        const snippet = await CodeSnippet.findById({ _id: req.params.id, createdBy: req.userId });
         
         if(!snippet){
             return res.status(404).json({error:"Snippet not found"});
@@ -42,7 +42,8 @@ export const addSnippet = async (req:any,res:any)=>{
             title,
             code,
             language,
-            user: req.userId,
+            createdBy: req.userId,
+
         });
         
         const savedSnippet = await newSnippet.save();
@@ -59,7 +60,7 @@ export const addSnippet = async (req:any,res:any)=>{
 export const deleteById =  async (req:AuthenticatedRequest,res:any)=>{
     try{
         const deletedSnippet = await CodeSnippet.findByIdAndDelete({_id: req.params.id,
-      user: req.userId,});
+  createdBy: req.userId,});
 
         if(!deletedSnippet){
             return res.status(404).json({error:"Snippet not found or unauthorized"}); 
@@ -77,7 +78,7 @@ export const updateById= async (req:AuthenticatedRequest,res:any)=>{
         const {title,code,language}=req.body;
         
         const updatedSnippet = await CodeSnippet.findByIdAndUpdate(
-           { _id: req.params.id, user: req.userId },
+           { _id: req.params.id,  createdBy: req.userId },
             { title, code, language },
             { new: true, runValidators: true }
           );
