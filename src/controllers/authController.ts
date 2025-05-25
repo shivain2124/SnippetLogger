@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt";
+import { AuthenticatedRequest } from "../middleware/authMiddleware";
+
 
 // register user
 export const register = async (req:any,res:any,next:NextFunction)=>{
@@ -122,5 +124,21 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
+  }
+};
+
+
+
+// Me function
+export const getMe = async (req: AuthenticatedRequest, res: any) => {
+  try {
+    const user = await User.findById(req.userId).select("-password -refreshToken");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch user info", error });
   }
 };
