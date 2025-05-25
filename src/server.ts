@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import app from "./app";
 
 const MONGO_URI = "mongodb://127.0.0.1:27017/snippetlogger";
-const PORT = 3000;
+const PORT = 5000;
 
 mongoose
   .connect(MONGO_URI)
