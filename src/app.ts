@@ -10,8 +10,10 @@ import authRoutes from "./routes/auth";
 const app = express();
 
 app.use(
-  cors({
-    origin: "http://localhost:5173", // Replace with your frontend URL
+  cors({ 
+    origin: ["http://localhost:5173",
+      `https://snippet-logger-frontend.vercel.app`
+    ] ,// Replace with your frontend URL
     credentials: true, // Needed for cookies (in later steps)
   })
 );
